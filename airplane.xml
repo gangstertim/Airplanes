@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+
+<properties>
+	<comment>A sample configuration file.</comment>
+	
+<entry key="airplane.classes">airplane.g0.SerializedPlayer</entry>
+
+	
+	<entry key = "airplane.numgames">1</entry>
+	
+	<entry key = "airplane.board.dir">flights</entry>
+	
+	
+</properties>
