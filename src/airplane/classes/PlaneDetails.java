@@ -9,9 +9,11 @@ public class PlaneDetails {
 	Point2D.Double loc;
 	double bearing;
 	
-	public PlaneDetails(Point2D.Double loc, double bearing) {};
+	public PlaneDetails(Point2D.Double location, double bear) {loc = location;
+																bearing = bear; }
 	public Point2D.Double getLoc() 							{return loc;}
-	void setLoc(Point2D.Double l)							{loc = l;}
+	void setLoc(Point2D.Double l)							{loc.x = l.getX();
+															 loc.y = l.getY(); }
 	public double getBearing() 								{return bearing;}
 	void setBearing(double b)								{bearing = b;}
 	void copy(PlaneDetails pd)								{this.loc = pd.loc; 

@@ -50,6 +50,7 @@ public class PlayerT extends Player {
 			int time = 0;		
 			
 			//Set the initial location and initial bearing 
+			logger.info("PX: " + p.getX());
 			curr.insertLoc(
 				new PlaneDetails(
 						new Point2D.Double(p.getX(), p.getY()), 		
@@ -59,9 +60,15 @@ public class PlayerT extends Player {
 			
 			//Set all subsequent locations and bearings until the plane has successfully
 			//found a path to its destination
-			while (curr.getLocAt(time++).getLoc() != p.getDestination() ) {
+			
+			//TODO: this time++ in the while loop is bad style; should fix
+			//TODO: we can't change the bearing > +/- 10
+			while (curr.size() >= time+1 && curr.getLocAt(time++).getLoc().distance(p.getDestination()) > 0.5) {
+				logger.info("time: " + time);
 				logger.info("loc: " + curr.getLocAt(time-1).getLoc());
+				logger.info("destination: " + p.getDestination());
 				Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1).getLoc(), 1, curr.getLocAt(time-1).getBearing());
+				//logger.info("currloc: " + currentLoc);
 				
 				curr.setLocAt(
 					time,
@@ -73,9 +80,10 @@ public class PlayerT extends Player {
 	
 	
 	public Point2D.Double getLocation(Point2D.Double currLocation, int steps, double bearing) {
+		//logger.info("bearing: " + bearing);
 		Point2D.Double toReturn = new Point2D.Double();
 		double deltaX = Math.sin(Math.toRadians(bearing));
-		double deltaY = Math.cos(Math.toRadians(bearing));
+		double deltaY = -1*Math.cos(Math.toRadians(bearing));
 
 		toReturn.setLocation(currLocation.getX() + (steps*deltaX), currLocation.getY() + (steps*deltaY));
 		return toReturn;
@@ -83,7 +91,6 @@ public class PlayerT extends Player {
 
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
-		//As everything is predetermined, this function only calls the bearings of each plane
 		for(int i = 0; i < planes.size(); i++) {
 			bearings[i] = allPlaneLocs[i].getLocAt(round).getBearing();
 		}
