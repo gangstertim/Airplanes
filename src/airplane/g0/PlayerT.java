@@ -15,6 +15,7 @@ public class PlayerT extends Player {
 	
 	//array of PlaneLocations; each PlaneLocation has the location of a single plane at every point in time
 	public LocationList[] allPlaneLocs;  
+	public int[] offsets;  //this array stores the departure time necessary for each plane
 	private Logger logger = Logger.getLogger(this.getClass()); // for logging
 	
 	@Override
@@ -25,21 +26,34 @@ public class PlayerT extends Player {
 	@Override
 	public void startNewGame(ArrayList<Plane> planes) {
 		allPlaneLocs = new LocationList[planes.size()];
+		offsets = new int[planes.size()];
 		setInitialPaths(planes, allPlaneLocs);
 		
 		for (int i=0; i<planes.size(); i++) {
-			for (int j=0; j<planes.size(); j++) {
-				checkCollisions(i, j);
-			}
+			for (int j=i+1; j<planes.size(); j++) {checkCollisions(i, j);}
+			//TODO:  The planes should be sent to checkCollisions in order, from longest distance to travel to shortest
 		}
 		
 	}
 	
-	boolean checkCollisions(int a, int b) {
-		//checks for collisions between allPlaneLocs[a] and allPlaneLocs[b]
-		//tries to correct them?
-		//returns true if no collisions exist;
-		return true;
+	void checkCollisions(int a, int b) {
+		LocationList first = allPlaneLocs[a];
+		LocationList second = allPlaneLocs[b];
+		int offset = 0;  //amount to shift b's path, should the original path result in a collision
+		boolean collisions = false;
+		while (!collisions) { //as long as there are no collisions...
+			for (int i=0; i<first.size(); i++) {
+				if (i<offset) continue;  //if i<offset, b hasn't taken off yet.
+				if (first.getLocAt(i).distance(second.getLocAt(i-offset)) < 5) { 
+					logger.info("Collision between " + a + " & " + b + "at " + i);
+					collisions = true;
+					offset+=5;
+					break;
+				} else collisions = false;
+			}
+		}
+		logger.info("necessary offset is: " + offset);
+		offsets[b]=offset;
 	}
 	public void setInitialPaths(ArrayList<Plane> planes, LocationList[] allPlaneLocs) {
 		//looks for straight-line path to each destination; assumes simultaneous start times
@@ -63,11 +77,11 @@ public class PlayerT extends Player {
 			
 			//TODO: this time++ in the while loop is bad style; should fix
 			//TODO: we can't change the bearing > +/- 10
-			while (curr.size() >= time+1 && curr.getLocAt(time++).getLoc().distance(p.getDestination()) > 0.5) {
-				logger.info("time: " + time);
-				logger.info("loc: " + curr.getLocAt(time-1).getLoc());
-				logger.info("destination: " + p.getDestination());
-				Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1).getLoc(), 1, curr.getLocAt(time-1).getBearing());
+			while (curr.size() >= time+1 && curr.getLocAt(time++).distance(p.getDestination()) > 0.5) {
+				//logger.info("time: " + time);
+				//logger.info("loc: " + curr.getLocAt(time-1));
+				//logger.info("destination: " + p.getDestination());
+				Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
 				//logger.info("currloc: " + currentLoc);
 				
 				curr.setLocAt(
@@ -92,7 +106,8 @@ public class PlayerT extends Player {
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		for(int i = 0; i < planes.size(); i++) {
-			bearings[i] = allPlaneLocs[i].getLocAt(round).getBearing();
+			if (round < offsets[i]) bearings[i] = -1;
+			else bearings[i] = allPlaneLocs[i].getBearingAt(round+offsets[i]);
 		}
 		return bearings;
 	}
