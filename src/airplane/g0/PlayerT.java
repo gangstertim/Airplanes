@@ -44,14 +44,10 @@ public class PlayerT extends Player {
 		int offset = 0;  //amount to shift b's path, should the original path result in a collision
 		boolean collisions = false;  
 		while (!collisions) { //as long as there are no collisions...
-			logger.info("diggity");
+			logger.info("currently in collisions loop");
 			for (int i=0; i<first.size(); i++) {
-				logger.info("sup");
-				//if i<offset, b hasn't taken off yet.  if the bearing is -2, the first plane has landed
-				if (i<offset) {
-					collisions=true;
-					continue;  
-				}
+				//if i<offset, b hasn't taken off yet.  
+				if (i<offset) {collisions=true; continue;}
 				else if ((first.getBearingAt(i) == -2) || first.getLocAt(i).distance(second.getLocAt(i-offset)) <= 5) { 
 					logger.info("Collision between " + a + " & " + b + "at " + i);
 					collisions = false;
@@ -61,7 +57,7 @@ public class PlayerT extends Player {
 			} 
 		}
 		logger.info("necessary offset is: " + offset);
-		offsets[b]=offset;
+		offsets[b]=offsets[a]+offset;
 	}
 	public void setInitialPaths(ArrayList<Plane> planes, LocationList[] allPlaneLocs) {
 		//looks for straight-line path to each destination; assumes simultaneous start times
@@ -114,11 +110,10 @@ public class PlayerT extends Player {
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		for(int i = 0; i < planes.size(); i++) {
-			if (round < offsets[i]) bearings[i] = -1;
-			else {
-				if (round + offsets[i] >= allPlaneLocs[i].size()) bearings[i]=-2; //grounded
-				else bearings[i] = allPlaneLocs[i].getBearingAt(round+offsets[i]);
-			}
+			if (round < offsets[i]) bearings[i] = -2;  //plane hasn't taken off yet
+			else if (round >= allPlaneLocs[i].size()+offsets[i]) bearings[i]=-2; //plane has landed
+			else bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]); //plane is flying
+	
 		}
 		return bearings;
 	}
