@@ -31,26 +31,29 @@ public class PlayerT extends Player {
 		
 		for (int i=0; i<planes.size(); i++) {
 			for (int j=i+1; j<planes.size(); j++) {checkCollisions(i, j);}
-			//TODO:  The planes should be sent to checkCollisions in order, from longest distance to travel to shortest
+			//TODO:  feed planes to checkCollisions in order of longest path rather than order of appearance
+			//note that i always maintains its path and j is always the corrected plane 
 		}
 		
 	}
 	
+	//Check collisions checks and repairs collisions between planes a and b; 
 	void checkCollisions(int a, int b) {
 		LocationList first = allPlaneLocs[a];
 		LocationList second = allPlaneLocs[b];
 		int offset = 0;  //amount to shift b's path, should the original path result in a collision
-		boolean collisions = false;
+		boolean collisions = false;  
 		while (!collisions) { //as long as there are no collisions...
 			for (int i=0; i<first.size(); i++) {
-				if (i<offset) continue;  //if i<offset, b hasn't taken off yet.
-				if (first.getLocAt(i).distance(second.getLocAt(i-offset)) < 5) { 
+				//if i<offset, b hasn't taken off yet.  if the bearing is -2, the first plane has landed
+				if (i<offset) continue;  
+				else if ((first.getBearingAt(i) == -2) || first.getLocAt(i).distance(second.getLocAt(i-offset)) <= 5) { 
 					logger.info("Collision between " + a + " & " + b + "at " + i);
-					collisions = true;
+					collisions = false;
 					offset+=5;
 					break;
-				} else collisions = false;
-			}
+				} else collisions = true;
+			} 
 		}
 		logger.info("necessary offset is: " + offset);
 		offsets[b]=offset;
@@ -107,7 +110,10 @@ public class PlayerT extends Player {
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		for(int i = 0; i < planes.size(); i++) {
 			if (round < offsets[i]) bearings[i] = -1;
-			else bearings[i] = allPlaneLocs[i].getBearingAt(round+offsets[i]);
+			else {
+				if (round + offsets[i] >= allPlaneLocs[i].size()) bearings[i]=-2; //grounded
+				else bearings[i] = allPlaneLocs[i].getBearingAt(round+offsets[i]);
+			}
 		}
 		return bearings;
 	}
