@@ -80,7 +80,6 @@ public class PlayerT extends Player {
 			//found a path to its destination
 			
 			//TODO: this time++ in the while loop is bad style; should fix
-			//TODO: we can't change the bearing > +/- 10
 			while (curr.size() >= time+1 && curr.getLocAt(time++).distance(p.getDestination()) > 0.5) {
 				//logger.info("time: " + time);
 				//logger.info("loc: " + curr.getLocAt(time-1));
@@ -88,10 +87,14 @@ public class PlayerT extends Player {
 				Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
 				//logger.info("currloc: " + currentLoc);
 				
-				curr.setLocAt(
-					time,
-					new PlaneDetails(currentLoc,calculateBearing(currentLoc, p.getDestination()))	
-				);
+				double newBearing = calculateBearing(currentLoc, p.getDestination());
+				//TODO 1:  I think these checks are the right idea, but this doesn't seem to work
+				if (curr.getBearingAt(time-1)==-2) newBearing=-2; //how the hell are we getting illegal moves from -2 to other bearings???
+				else if (Math.abs(newBearing-curr.getBearingAt(time-1))>10) {
+					newBearing = (newBearing>curr.getBearingAt(time-1) ? newBearing+10 : newBearing-10);
+				}
+				curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
+				//END TODO 1
 			}
 		}
 	}
