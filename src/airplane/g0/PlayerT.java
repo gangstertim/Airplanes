@@ -44,15 +44,20 @@ public class PlayerT extends Player {
 		int offset = 0;  //amount to shift b's path, should the original path result in a collision
 		boolean collisions = false;  
 		while (!collisions) { //as long as there are no collisions...
+			logger.info("diggity");
 			for (int i=0; i<first.size(); i++) {
+				logger.info("sup");
 				//if i<offset, b hasn't taken off yet.  if the bearing is -2, the first plane has landed
-				if (i<offset) continue;  
+				if (i<offset) {
+					collisions=true;
+					continue;  
+				}
 				else if ((first.getBearingAt(i) == -2) || first.getLocAt(i).distance(second.getLocAt(i-offset)) <= 5) { 
 					logger.info("Collision between " + a + " & " + b + "at " + i);
 					collisions = false;
 					offset+=5;
 					break;
-				} else collisions = true;
+				} 
 			} 
 		}
 		logger.info("necessary offset is: " + offset);
