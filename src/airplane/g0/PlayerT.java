@@ -25,8 +25,17 @@ public class PlayerT extends Player {
 
 	@Override
 	public void startNewGame(ArrayList<Plane> planes) {
-		allPlaneLocs = new LocationList[planes.size()];
 		offsets = new int[planes.size()];
+		
+		
+		for(int i=0; i<planes.size(); i++)
+		{
+			offsets[i] = planes.get(i).getDepartureTime();
+			
+		}
+		allPlaneLocs = new LocationList[planes.size()];
+		
+		
 		setInitialPaths(planes, allPlaneLocs);
 		
 		for (int i=0; i<planes.size(); i++) {
@@ -120,8 +129,8 @@ public class PlayerT extends Player {
 			
 			
 
-			if(bearings[i] == -2) { bearings[i] = -2; }
-			else if (round < offsets[i]) { bearings[i] = -1; }  //plane hasn't taken off yet
+			if(bearings[i] == -2) {  }
+			else if (round < offsets[i] ) { }  //plane hasn't taken off yet
 			else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
 			else  { bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]); } //plane is flying
 		
