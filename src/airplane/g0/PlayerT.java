@@ -80,13 +80,13 @@ public class PlayerT extends Player {
 			//found a path to its destination
 			
 			//TODO: this time++ in the while loop is bad style; should fix
-			while (curr.size() >= time+1 && curr.getLocAt(time++).distance(p.getDestination()) > 0.5) {
-				//logger.info("time: " + time);
-				//logger.info("loc: " + curr.getLocAt(time-1));
-		 		//logger.info("destination: " + p.getDestination());
+			while (curr.size() >= time+1 && curr.getLocAt(time++).distance(p.getDestination()) > 1) {
+				logger.info("time: " + time);
+				logger.info("loc: " + curr.getLocAt(time-1));
+		 		logger.info("destination: " + p.getDestination());
 				Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
 				//logger.info("currloc: " + currentLoc);
-				
+
 				double newBearing = calculateBearing(currentLoc, p.getDestination());
 				//TODO 1:  I think these checks are the right idea, but this doesn't seem to work
 			
@@ -97,7 +97,7 @@ public class PlayerT extends Player {
 				else if (Math.abs(newBearing-curr.getBearingAt(time-1))>10) {
 					newBearing = (newBearing>curr.getBearingAt(time-1) ? newBearing+10 : newBearing-10);
 				}
-				else if(currentLoc.distance(p.getDestination()) < .1) {
+				else if(currentLoc.distance(p.getDestination()) < 0.1) {
 					newBearing = -2;
 				}
 				curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
@@ -120,11 +120,16 @@ public class PlayerT extends Player {
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		for(int i = 0; i < planes.size(); i++) {
+			
+			
+			
+
 			if(bearings[i] == -2) { bearings[i] = -2; }
 			else if (round < offsets[i]) { bearings[i] = -1; }  //plane hasn't taken off yet
-			else if (round >= allPlaneLocs[i].size()+offsets[i]) { bearings[i]=-2; } //plane has landed
+			else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
 			else  { bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]); } //plane is flying
-		}
+		
+			}
 		return bearings;
 	}
 
