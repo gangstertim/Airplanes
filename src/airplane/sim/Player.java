@@ -47,7 +47,7 @@ public abstract class Player {
 	 */
 	protected double[] simulateUpdate(ArrayList<Plane> planes, int round, double[] bearings) {
 		// not implemented
-		return null;
+		return bearings;
 	}
 	
 	/*
@@ -75,6 +75,7 @@ public abstract class Player {
      */
     protected SimulationResult startSimulation(ArrayList<Plane> planes, int round) {
     	continueSimulation = true;
+    	int x = 0;
     	// make a copy of all the Planes (so the originals don't get affected)
     	ArrayList<Plane> simPlanes = new ArrayList<Plane>();
     	for (Plane p : planes) {
@@ -92,9 +93,10 @@ public abstract class Player {
     	}
     	
     	// now loop through the simulation
-    	while(landed != simBearings.length && continueSimulation) {
+    	while(landed != simBearings.length && continueSimulation && x < 15) {
     		// update the round number
     		round++;
+    		x++;
     		// the player simulates the update of the planes
     		simBearings = simulateUpdate(simPlanes, round, simBearings);
     		// if it's null, then don't bother
