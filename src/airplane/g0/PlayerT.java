@@ -28,11 +28,8 @@ public class PlayerT extends Player {
 		offsets = new int[planes.size()];
 		
 		
-		for(int i=0; i<planes.size(); i++)
-		{
-			offsets[i] = planes.get(i).getDepartureTime();
+		for(int i=0; i<planes.size(); i++) offsets[i] = planes.get(i).getDepartureTime();
 			
-		}
 		allPlaneLocs = new LocationList[planes.size()];
 		
 		
@@ -50,24 +47,31 @@ public class PlayerT extends Player {
 	void checkCollisions(int a, int b, ArrayList<Plane> planes) {
 		LocationList first = allPlaneLocs[a];
 		LocationList second = allPlaneLocs[b];
-		int offset = planes.get(b).getDepartureTime();  //amount to shift b's path, should the original path result in a collision
+		int offsetA = offsets[a];  //amount to shift b's path, should the original path result in a collision
+		int offsetB = offsets[b];
+		logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
 		boolean collisions = false;  
 		while (!collisions) { //as long as there are no collisions...
 			logger.info("currently in collisions loop");
 			for (int i=0; i<first.size(); i++) {
-				//if i<offset, b hasn't taken off yet.  
-				if (i<offset) {collisions=true; continue;}
-				if ((first.getBearingAt(i-offsets[a]) == -1) || (second.getBearingAt(i-offsets[b]) == -1)) {collisions=true; continue;}
-				else if ((first.getBearingAt(i-offsets[a]) == -2) || first.getLocAt(i).distance(second.getLocAt(i-offset)) <= 5) { 
-					logger.info("Collision between " + a + " & " + b + "at " + i);
-					collisions = false;
-					offset+=5;
-					break;
-				} 
+				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
+				else {
+					if ((planes.get(a).getDestination().distance(first.getLocAt(i)) <= 1) ||
+							(planes.get(b).getDestination().distance(second.getLocAt(i)) <= 1))
+						{collisions=true; logger.info("bam!"); break;}
+					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5) { 
+						logger.info("Collision between " + a + " & " + b + "at " + i);
+						collisions = false;
+						offsetB+=2;
+						break;
+					} 
+				}
 			} 
 		}
-		logger.info("necessary offset is: " + offset);
-		offsets[b]=offset;
+		logger.info("necessary offset is: " + offsetB);
+		offsets[b]=offsetB;
+		logger.info("offset " + a + ": " + offsets[a]);
+		logger.info("offset " + b + ": " + offsets[b]);
 	}
 	public void setInitialPaths(ArrayList<Plane> planes, LocationList[] allPlaneLocs) {
 		//looks for straight-line path to each destination; assumes simultaneous start times
@@ -78,7 +82,6 @@ public class PlayerT extends Player {
 			int time = 0;		
 			
 			//Set the initial location and initial bearing 
-			logger.info("PX: " + p.getX());
 			curr.insertLoc(
 				new PlaneDetails(
 						new Point2D.Double(p.getX(), p.getY()), 		
@@ -106,7 +109,6 @@ public class PlayerT extends Player {
 				
 				//if (time <= p.getDepartureTime()) curr.setLocAt(time, new PlaneDetails(currentLoc, -1));
 				else curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
-				logger.info("loc: " + currentLoc + " bearing: " + newBearing);
 			}
 		}
 	}
