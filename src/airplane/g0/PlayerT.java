@@ -74,7 +74,7 @@ public class PlayerT extends Player {
 			}
 		}
 		
-		if(!initialValid && bestDirection == 0 && roundFail != Integer.MAX_VALUE) {
+		if(!initialValid && bestDirection == 0) {
 			bestDirection = -10;
 		}
 		
@@ -83,8 +83,8 @@ public class PlayerT extends Player {
 		
 		if(toReturn < 0) { toReturn += 360; }
 		if(toReturn > 360) { toReturn -= 360; }
-		
-		return toReturn;
+		logger.info("toReturn + " + toReturn);
+		return toReturn % 360;
 	}
 	
 	double moveTowards(double currentBearing, double targetBearing) {
@@ -107,7 +107,7 @@ public class PlayerT extends Player {
 		} else if(targetBearing < currentBearing) {
 			toReturn = currentBearing - 10;
 		}
-		return toReturn;
+		return toReturn % 360;
 	}
 	
 	//Check collisions checks and repairs collisions between planes a and b; 
