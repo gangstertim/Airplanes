@@ -65,33 +65,48 @@ public class PlayerT extends Player {
          Plane p = planes.get(planeNumber);
          double initialBearing = p.getBearing();
          double minDistance = Double.MAX_VALUE;
-         int bestDirection = 0;
+         double bestDirection = 0;
          double toReturn = initialBearing;
 
-         SimulationResult sr = startSimulation(planes, round);
-         boolean initialValid = sr.isSuccess();
+         
  
-         if((initialBearing == -1 && round > p.getDepartureTime())) {
-                 return calculateBearing(p.getLocation(), p.getDestination());
-         } else if(initialBearing == -1 && round < p.getDepartureTime()) {
+         if((initialBearing == -1 && round > offsets[planeNumber])) {
+        	 return calculateBearing(p.getLocation(), p.getDestination());
+                 
+         } else if(initialBearing == -1 && round < offsets[planeNumber]) {
         	 	return -1;
          }
-
-         for(int i = -10; i <= 10; i ++) {
-                 p.setBearing(initialBearing + i);
+         
+         SimulationResult sr = startSimulation(planes, round);
+         boolean initialValid = sr.isSuccess();
+         int reason = sr.getReason();
+         logger.info("initvalid"+" "+sr.getReason());
+        boolean allvalid = true;
+         for(double i = -9; i <= 9; i=i+0.5) {
+        	 double bearn = initialBearing + i;
+        	  if(bearn < 0) { bearn += 360; }
+              if(bearn > 360) { bearn -= 360; }
+           
+              bearn = bearn % 360;
+                 p.setBearing(bearn);
+                 
                  SimulationResult srNew = startSimulation(planes, round);
                  boolean valid = srNew.isSuccess();
-                 double distance = getLocation(p.getLocation(), 1, initialBearing+i).distance(p.getDestination());
-         
+                 
+                 double distance = getLocation(p.getLocation(), 1, bearn).distance(p.getDestination());
+                logger.info(valid);
                  if(distance < minDistance && valid) {
                          bestDirection = i;
                          minDistance = distance;
                  }
          }
-         
+
          if(!initialValid && bestDirection == 0) {
+        	 
+        
                  bestDirection = -10;
-         }
+        	
+        	 }
          
          toReturn += bestDirection;
          p.setBearing(initialBearing);
@@ -135,6 +150,7 @@ public class PlayerT extends Player {
 		//logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
 		boolean collisions = false; 
 		int collisionCount = 0;
+		boolean dp =false;
 		outerWhile:
 		while (!collisions) { //as long as there are no collisions...
 			int flag = 1;
@@ -153,19 +169,32 @@ public class PlayerT extends Player {
 						break;
 					} 
 					
-					/*if(collisionCount > 10) {
+					if(collisionCount > 50) {
+						Plane pa = planes.get(a);
+						Plane pb = planes.get(b);
+						
+						double bdist = Math.abs(calculateBearing(pa.getLocation(), pa.getDestination())-calculateBearing(pb.getLocation(), pb.getDestination()));
+						//logger.info(bdist);
+						if((bdist>170 && bdist<190) )
+						{
+						
+						dynamicPlanes.add(b);
+						
+						happened = false;
+						dp = true;
 						break outerWhile;
-					}*/
+						}
+						
+					}
 				}
 			}
 			if(flag==1) {
 				break;
 			}	
-			/*if(collisionCount > 10) {
-				dynamicPlanes.add(b);
-			}*/
+
 		}
 		//logger.info("necessary offset is: " + offsetB);
+		if(!dp)
 		offsets[b]=offsetB;
 		//logger.info("offset " + a + ": " + offsets[a]);
 		//logger.info("offset " + b + ": " + offsets[b]);
@@ -231,9 +260,11 @@ public class PlayerT extends Player {
 		for(int i = 0; i < planes.size(); i++) {
 			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2)
 			{
-			} /*else if(dynamicPlanes.contains(i) && round > 1) {
-                bearings[i] = goGreedy(planes, i, round);
-			}*/
+			}else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
+                double bear = goGreedy(planes, i, round);
+                if(bear!=-1)
+                	bearings[i]=bear;
+			}
 			else if (round < offsets[i] ) { }  //plane hasn't taken off yet
 			else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
 			else  { 
