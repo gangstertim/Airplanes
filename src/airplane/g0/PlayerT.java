@@ -56,7 +56,7 @@ public class PlayerT extends Player {
 		
 		
 		for (int i=0; i<planes.size(); i++) {
-			for (int j=i+1; j<planes.size(); j++) {if(checkCollisions(indexes[i], indexes[j], planes)){i=0; }}
+			for (int j=i+1; j<planes.size(); j++) {if(checkCollisions(indexes[i], indexes[j], planes)){i=-1; break;}}
 			//TODO:  feed planes to checkCollisions in order of longest path rather than order of appearance
 			//note that i always maintains its path and j is always the corrected plane 
 		}
@@ -150,7 +150,7 @@ public class PlayerT extends Player {
 						happened=true;
 						collisions = false;
 						flag=0;
-						offsetB+=5;
+						offsetB+=1;
 						break;
 					} 
 					else
@@ -229,9 +229,13 @@ public class PlayerT extends Player {
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		for(int i = 0; i < planes.size(); i++) {
-			if(bearings[i] == -2) {  }
+			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2)
+			{
+				
+			}
 			else if (round < offsets[i] ) { }  //plane hasn't taken off yet
 			else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
+			
 			else  { 
 				bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]); 
 			} //plane is flying
