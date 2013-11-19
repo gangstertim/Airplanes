@@ -36,10 +36,8 @@ public class PlayerT extends Player {
 		
 		
 		setInitialPaths(planes, allPlaneLocs);
-		
 		for (int i=0; i<planes.size(); i++) {
-			for (int j=i+1; j<planes.size(); j++) {checkCollisions(i, j, planes);}
-
+			for (int j=i+1; j<planes.size(); j++) {if(checkCollisions(i, j, planes)){i=0;}}
 			//TODO:  feed planes to checkCollisions in order of longest path rather than order of appearance
 			//note that i always maintains its path and j is always the corrected plane 
 		}
@@ -111,44 +109,49 @@ public class PlayerT extends Player {
 	}
 	
 	//Check collisions checks and repairs collisions between planes a and b; 
-	void checkCollisions(int a, int b, ArrayList<Plane> planes) {
+	boolean checkCollisions(int a, int b, ArrayList<Plane> planes) {
+		boolean happened = false;
 		LocationList first = allPlaneLocs[a];
 		LocationList second = allPlaneLocs[b];
 		int offsetA = offsets[a];  //amount to shift b's path, should the original path result in a collision
 		int offsetB = offsets[b];
-		logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
-		boolean collisions = false;  
-		int collisionsCount = 0;
-		outerWhile:
+		//logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
+		boolean collisions = false; 
+		
 		while (!collisions) { //as long as there are no collisions...
-			logger.info("currently in collisions loop");
-			for (int i=0; i<first.size(); i++) {
+			int flag = 1;
+			//logger.info("currently in collisions loop");
+			for (int i=0; i<first.size() && i<second.size() && i-offsetB+offsetA<second.size(); i++) {
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
 				else {
-					if ((planes.get(a).getDestination().distance(first.getLocAt(i)) <= 1) ||
-							(planes.get(b).getDestination().distance(second.getLocAt(i)) <= 1))
-						{collisions=true; logger.info("bam!"); break;}
-					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5) { 
+					
+					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) < 6) { 
+						
 						logger.info("Collision between " + a + " & " + b + "at " + i);
-						collisionsCount++;
+						happened=true;
 						collisions = false;
+						flag=0;
 						offsetB+=2;
 						break;
 					} 
-					if(collisionsCount >= 10) {
-						break outerWhile;
+					else
+					{
+						
+						
 					}
 				}
-			} 
-		}
-		logger.info("necessary offset is: " + offsetB);
-		offsets[b]=offsetB;
-		logger.info("offset " + a + ": " + offsets[a]);
-		logger.info("offset " + b + ": " + offsets[b]);
+			}
+			if(flag==1)
+				break;
 		
-		if(collisionsCount >= 10) {
-			dynamicPlanes.add(b);
+			
 		}
+		//logger.info("necessary offset is: " + offsetB);
+		offsets[b]=offsetB;
+		//logger.info("offset " + a + ": " + offsets[a]);
+		//logger.info("offset " + b + ": " + offsets[b]);
+		
+		return happened;
 	}
 	public void setInitialPaths(ArrayList<Plane> planes, LocationList[] allPlaneLocs) {
 		//looks for straight-line path to each destination; assumes simultaneous start times
