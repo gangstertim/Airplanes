@@ -12,12 +12,20 @@ public class LocationList {
 	
 	//Contains all of the plane details at each turn of the game
 	ArrayList<PlaneDetails> locs;
-	
-	public LocationList() {locs = new ArrayList<PlaneDetails> ();}
+	public double distance;
+	public LocationList() {locs = new ArrayList<PlaneDetails>();}
 	public void insertLoc(PlaneDetails d)			{locs.add(d);}
 	public void setLocAt(int t, PlaneDetails d) 	{locs.add(t, d);}
 	public int size()								{return locs.size();}
 	public Point2D.Double getLocAt(int t) 			{return locs.get(t).getLoc();}
 	public double getBearingAt(int t)				{return locs.get(t).getBearing();}
+	public int compareTo(LocationList locationList) {
+		if(this.distance>locationList.distance)
+			return -1;
+		else if(this.distance<locationList.distance)
+			return 0;
+		else
+			return 1;
+	}
 	
 } 

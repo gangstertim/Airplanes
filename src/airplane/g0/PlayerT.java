@@ -1,6 +1,7 @@
 package airplane.g0;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.awt.*;
 import java.awt.geom.Point2D;
 
@@ -19,7 +20,7 @@ public class PlayerT extends Player {
 	public int[] offsets;  //this array stores the departure time necessary for each plane
 	private Logger logger = Logger.getLogger(this.getClass()); // for logging
 	private ArrayList<Integer> dynamicPlanes = new ArrayList<Integer> ();
-	
+	Integer[] indexes;
 	@Override
 	public String getName() {
 		return "PlayerT";
@@ -30,14 +31,32 @@ public class PlayerT extends Player {
 		offsets = new int[planes.size()];
 		
 		
-		for(int i=0; i<planes.size(); i++) offsets[i] = planes.get(i).getDepartureTime();
+	
 			
 		allPlaneLocs = new LocationList[planes.size()];
-		
+
 		
 		setInitialPaths(planes, allPlaneLocs);
+		
+		
+		FlightComparator comparator = new FlightComparator(allPlaneLocs);
+		indexes = comparator.createIndexArray();
+
+		
+		Arrays.sort(indexes, comparator);
+		
+		
+		
+		for(int i=0; i<planes.size(); i++)
+			logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].distance);
+		
+		
+		
+		for(int i=0; i<planes.size(); i++) offsets[i] = planes.get(i).getDepartureTime();
+		
+		
 		for (int i=0; i<planes.size(); i++) {
-			for (int j=i+1; j<planes.size(); j++) {if(checkCollisions(i, j, planes)){i=0;}}
+			for (int j=i+1; j<planes.size(); j++) {if(checkCollisions(indexes[i], indexes[j], planes)){i=0; }}
 			//TODO:  feed planes to checkCollisions in order of longest path rather than order of appearance
 			//note that i always maintains its path and j is always the corrected plane 
 		}
@@ -156,7 +175,10 @@ public class PlayerT extends Player {
 	public void setInitialPaths(ArrayList<Plane> planes, LocationList[] allPlaneLocs) {
 		//looks for straight-line path to each destination; assumes simultaneous start times
 		for(int i = 0; i < planes.size(); i++) {
-			allPlaneLocs[i] = new LocationList();  //Instantiate a LocationList for each plane
+			allPlaneLocs[i] = new LocationList();
+			double distance = planes.get(i).getLocation().distance(planes.get(i).getDestination()) + planes.get(i).getDepartureTime();
+					
+			allPlaneLocs[i].distance = distance;  
 			LocationList curr = allPlaneLocs[i];
 			Plane p = planes.get(i);
 			int time = 0;		
@@ -207,10 +229,7 @@ public class PlayerT extends Player {
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		for(int i = 0; i < planes.size(); i++) {
-			if(dynamicPlanes.contains(i) && round > 1) {
-				bearings[i] = goGreedy(planes, i, round);
-			}
-			else if(bearings[i] == -2) {  }
+			if(bearings[i] == -2) {  }
 			else if (round < offsets[i] ) { }  //plane hasn't taken off yet
 			else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
 			else  { 
