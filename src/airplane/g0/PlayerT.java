@@ -121,7 +121,7 @@ public class PlayerT extends Player {
 		while (!collisions) { //as long as there are no collisions...
 			int flag = 1;
 			//logger.info("currently in collisions loop");
-			for (int i=0; i<first.size() && i<second.size() && i-offsetB+offsetA<second.size(); i++) {
+			for (int i=0; i<first.size() && i-offsetB+offsetA<second.size(); i++) {
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
 				else {
 					
@@ -131,7 +131,7 @@ public class PlayerT extends Player {
 						happened=true;
 						collisions = false;
 						flag=0;
-						offsetB+=2;
+						offsetB+=5;
 						break;
 					} 
 					else
