@@ -144,7 +144,7 @@ public class PlayerT extends Player {
 				else {
 					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) < 6) { 
 						
-						logger.info("Collision between " + a + " & " + b + "at " + i);
+						//logger.info("Collision between " + a + " & " + b + "at " + i);
 						collisionCount ++;
 						happened=true;
 						collisions = false;
@@ -176,7 +176,7 @@ public class PlayerT extends Player {
 		//looks for straight-line path to each destination; assumes simultaneous start times
 		for(int i = 0; i < planes.size(); i++) {
 			allPlaneLocs[i] = new LocationList();
-			double distance = planes.get(i).getLocation().distance(planes.get(i).getDestination()) + planes.get(i).getDepartureTime();
+			double distance = planes.get(i).getLocation().distance(planes.get(i).getDestination());
 					
 			allPlaneLocs[i].distance = distance;  
 			LocationList curr = allPlaneLocs[i];

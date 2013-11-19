@@ -20,12 +20,7 @@ public class LocationList {
 	public Point2D.Double getLocAt(int t) 			{return locs.get(t).getLoc();}
 	public double getBearingAt(int t)				{return locs.get(t).getBearing();}
 	public int compareTo(LocationList locationList) {
-		if(this.distance>locationList.distance)
-			return -1;
-		else if(this.distance<locationList.distance)
-			return 0;
-		else
-			return 1;
+		return (int)-(this.distance-locationList.distance);
 	}
 	
 } 
