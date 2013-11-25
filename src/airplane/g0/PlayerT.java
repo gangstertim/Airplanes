@@ -185,7 +185,7 @@ public class PlayerT extends Player {
 						break outerWhile;
 						}
 						
-					}
+					} 
 				}
 			}
 			if(flag==1) {
