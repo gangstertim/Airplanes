@@ -8,9 +8,10 @@ import org.apache.log4j.Logger;
 public class PlaneDetails {
 	Point2D.Double loc;
 	double bearing;
-	
+
 	public PlaneDetails(Point2D.Double location, double bear) {loc = location;
-																bearing = bear; }
+																bearing = bear;
+															}
 	public Point2D.Double getLoc() 							{return loc;}
 	void setLoc(Point2D.Double l)							{loc.x = l.getX();
 															 loc.y = l.getY(); }
