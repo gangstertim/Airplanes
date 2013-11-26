@@ -284,12 +284,23 @@ public class PlayerNew extends Player {
     }
 
     	double goAroundTheFlow(ArrayList<Plane> planes, int p) {
-    		//if p is at its destination, we're done
-    		//else, check to see if it's at waypoint[p]
-    			//if it is, see if it needs to cross any other flows with checkIfCrossesFlow to get to its destination
-    				//if yes, calculate them with calculateWaypoint
-    				//if no, make the destination the next waypoint.
-				//if it is not, return the bearing necessary to get to waypoint[p] using moveTowards
+    		double bearing;
+    		Point2D.Double loc = planes.get(p).getLocation();
+    		Point2D.Double dest = planes.get(p).getDestination();
+    		double bear = planes.get(p).getBearing();
+    		if (loc.distance(dest) < .5) return -1;
+    		else if (loc.distance(waypoints[p]) < .5) {
+    			for (int i=0; i<planes.size(); i++) {
+    				if (checkIfCrossesFlow(p, i)) {
+	    				waypoints[p] = calculateWaypoint(i, p);
+	    				bearing = //????
+    				}
+    			}
+			} else { //make the destination the next waypoint.
+				waypoints[p] = //dest????
+			} else {
+    			bearing = moveTowards(bear, calculateBearing(loc, dest));
+    		}
     		return 0;
     	}
     	
@@ -313,7 +324,7 @@ public class PlayerNew extends Player {
         return bearings;
     }
     
-    /*
+    
     double moveTowards(double currentBearing, double targetBearing) {
         currentBearing = currentBearing + 360;
         double toReturn = currentBearing;
@@ -334,6 +345,6 @@ public class PlayerNew extends Player {
             toReturn = currentBearing - 10;
         }
         return toReturn % 360;
-    } */
+    } 
 
 }
