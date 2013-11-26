@@ -181,15 +181,7 @@ public class PlayerT extends Player {
 						else {
 							if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) < 6) { 
 								
-								
-						
-							
-									
 									return true;
-								
-								
-								
-								
 							
 							/*
 							if(collisionCount > 50) {
@@ -207,12 +199,10 @@ public class PlayerT extends Player {
 								dp = true;
 								break outerWhile;
 								}
-								
 							}
 							*/
 						}
 					}
-		
 					}	
 
 				}
@@ -243,49 +233,27 @@ public class PlayerT extends Player {
 		outerWhile:
 			
 		while (!collisions) { //as long as there are no collisions...
-			int flag = 1;
-			
+			int flag = 1;		
 			//logger.info("currently in collisions loop");
 			for (int i=0; i<first.size() && i-offsetB+offsetA<second.size(); i++) {
-				
-				
-				
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
 				else {
 					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) < 6.0) { 
-						
-						
-				
-						if(collisionCount>10 && second.arc==0 && planes.get(b).getLocation().distance(planes.get(b).getDestination())>40) 
-						{
-							
-							
-							if(formArc(b,planes,(-30/180.0)*Math.PI))
-							{
+						if(collisionCount>10 && second.arc==0 && planes.get(b).getLocation().distance(planes.get(b).getDestination())>40) {		
+							if(formArc(b,planes,(-30/180.0)*Math.PI)) {
 							dp=true;
 							return true;
-							}
-							else
-							{
-								
-								if(formArc(b,planes,(30.0/180.0)*Math.PI))
-								{
-									
-									return true;
-								}
-								else
-								{
+							} else {
+								if(formArc(b,planes,(30.0/180.0)*Math.PI)) return true;
+								else {
 									collisionCount ++;
 									happened=true;
 									collisions = false;
 									flag=0;
 									offsetB+=1;
 									break;	
-									
 								}
-								
 							}
-						
 						}
 						else if(second.arc>0)
 						{
@@ -295,8 +263,6 @@ public class PlayerT extends Player {
 							flag=0;
 							offsetB+=1;
 							break;			
-							
-							
 						}
 						else
 						{
@@ -306,13 +272,7 @@ public class PlayerT extends Player {
 							flag=0;
 							offsetB+=1;
 							break;	
-						}
-						
-						
-						
-						
-						
-						
+						}	
 					} 
 					/*
 					if(collisionCount > 50) {
@@ -352,23 +312,19 @@ public class PlayerT extends Player {
 	public boolean formArc(int b,ArrayList<Plane> planes,double angle)
 	{
 		
-		
 		LocationList curr = allPlaneLocs[b];
 		curr.locs.clear();
 		curr.arc++;
-		int time=0;
+		 int time=0;
 		Plane p = planes.get(b);
 		
-	  
+
      	double dist = p.getLocation().distance(p.getDestination());
         double radius = (dist/Math.sin(2*angle))*Math.cos(angle);
         double change =-(2*Math.asin(1.0/(2*radius)));
         logger.info(change);
         double thres = change*180.0/Math.PI;
-        if(Math.abs(change*180.0/(Math.PI))>10.0)
-        {    	
-        	return false;
-        }
+        if(Math.abs(change*180.0/(Math.PI))>10.0) return false;
 		double bearn = calculateBearing(p.getLocation(), p.getDestination());
 		bearn = bearn+(angle+change/(dist))*180.0/Math.PI;
 
@@ -403,8 +359,7 @@ public class PlayerT extends Player {
 			curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
 			
 			// logger.info(change*180.0/Math.PI+" "+time+" "+newBearing);
-		
-			
+
 		}
 		
 		while (curr.size() >= time+1 && curr.getLocAt(time).distance(p.getDestination()) >1) {
@@ -417,26 +372,24 @@ public class PlayerT extends Player {
 			if (curr.getBearingAt(time)==-2) {
 				newBearing=-2; //how the hell are we getting illegal moves from -2 to other bearings???
 			} else if (Math.abs(newBearing-curr.getBearingAt(time))>10.0) {
+				
 					int sign = (int) Math.signum(newBearing-curr.getBearingAt(time));
 					newBearing = curr.getBearingAt(time)+sign*9.9;
 					 	  if(newBearing < 0.0) { newBearing += 360; }
 				     if(newBearing > 360.0) { newBearing -= 360; }
-				     newBearing = newBearing % 360.0;						
+				     newBearing = newBearing % 360.0;
+				     logger.info("hey");
+				
 			}
 			time++;
 			//if (time <= p.getDepartureTime()) curr.setLocAt(time, new PlaneDetails(currentLoc, -1));
-			curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
-			
+			curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));			
 		}
-		
 		allPlaneLocs[b]=curr;
 
-		
-		
-	return true;
+		return true;
 	}
-	
-	
+
 	public void setInitialPaths(ArrayList<Plane> planes, LocationList[] allPlaneLocs) {
 		//looks for straight-line path to each destination; assumes simultaneous start times
 		for(int i = 0; i < planes.size(); i++) {
