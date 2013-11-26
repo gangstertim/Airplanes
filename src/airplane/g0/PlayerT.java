@@ -356,36 +356,32 @@ public class PlayerT extends Player {
 		LocationList curr = allPlaneLocs[b];
 		curr.locs.clear();
 		curr.arc++;
-		 int time=0;
+		int time=0;
 		Plane p = planes.get(b);
 		
-	
-
-		
-
-  
+	  
      	double dist = p.getLocation().distance(p.getDestination());
         double radius = (dist/Math.sin(2*angle))*Math.cos(angle);
         double change =-(2*Math.asin(1.0/(2*radius)));
         logger.info(change);
         double thres = change*180.0/Math.PI;
         if(Math.abs(change*180.0/(Math.PI))>10.0)
-        {
-        	
+        {    	
         	return false;
         }
 		double bearn = calculateBearing(p.getLocation(), p.getDestination());
-bearn = bearn+(angle+change/(dist))*180.0/Math.PI;
+		bearn = bearn+(angle+change/(dist))*180.0/Math.PI;
 
-   	  if(bearn < 0) { bearn += 360; }
-     if(bearn > 360) { bearn -= 360; }
-     bearn = bearn % 360;
+   	  	if(bearn < 0) { bearn += 360; }
+   	  	if(bearn > 360) { bearn -= 360; }
+   	  	bearn = bearn % 360;
      
 		curr.setLocAt(time,
 				new PlaneDetails(
 						new Point2D.Double(p.getX(), p.getY()), 		
 						bearn)
 				);
+		
 		double accbear = 0.0;
 		while (curr.size() >= time+1 && curr.getLocAt(time).distance(p.getDestination()) > 4) {
 			time++;
@@ -421,16 +417,11 @@ bearn = bearn+(angle+change/(dist))*180.0/Math.PI;
 			if (curr.getBearingAt(time)==-2) {
 				newBearing=-2; //how the hell are we getting illegal moves from -2 to other bearings???
 			} else if (Math.abs(newBearing-curr.getBearingAt(time))>10.0) {
-				
 					int sign = (int) Math.signum(newBearing-curr.getBearingAt(time));
 					newBearing = curr.getBearingAt(time)+sign*9.9;
 					 	  if(newBearing < 0.0) { newBearing += 360; }
 				     if(newBearing > 360.0) { newBearing -= 360; }
-				     newBearing = newBearing % 360.0;
-				     logger.info("hey");
-					
-						
-						
+				     newBearing = newBearing % 360.0;						
 			}
 			time++;
 			//if (time <= p.getDepartureTime()) curr.setLocAt(time, new PlaneDetails(currentLoc, -1));

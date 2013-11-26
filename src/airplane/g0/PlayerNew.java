@@ -23,7 +23,7 @@ public class PlayerNew extends Player {
         Integer[] indexes;
         @Override
         public String getName() {
-                return "PlayerT";
+                return "PlayerNew";
         }
 
         @Override
