@@ -20,6 +20,7 @@ public class PlayerNew extends Player {
     public int[] offsets;  //this array stores the departure time necessary for each plane
     private Logger logger = Logger.getLogger(this.getClass()); // for logging
     private ArrayList<Integer> dynamicPlanes = new ArrayList<Integer> ();
+    private ArrayList<Integer> flowPlanes = new ArrayList<Integer> ();
     Integer[] indexes;
     @Override
     public String getName() {
@@ -35,18 +36,39 @@ public class PlayerNew extends Player {
         indexes = comparator.createIndexArray();
         Arrays.sort(indexes, comparator);
              
-        for(int i=0; i<planes.size(); i++)
-            logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].distance);
-        
-        for(int i=0; i<planes.size(); i++) offsets[i] = planes.get(i).getDepartureTime();
-        
+        for(int i=0; i<planes.size(); i++) {
+        	offsets[i] = planes.get(i).getDepartureTime();
+        	
+	        if (checkFlow(planes, i)) {
+	    		flowPlanes.add(i);
+	    		logger.info("plane "+i+" is in a flow");
+	    	}
+    	}
+    
         for (int i=0; i<planes.size(); i++) {
-            for (int j=i+1; j<planes.size(); j++) {if(checkCollisions(indexes[i], indexes[j], planes)){i=-1; break;}}
-            //TODO:  feed planes to checkCollisions in order of longest path rather than order of appearance
-            //note that i always maintains its path and j is always the corrected plane 
+            for (int j=i+1; j<planes.size(); j++)  {
+            	if (checkCollisions(indexes[i], indexes[j], planes)) {
+            		i=-1; 
+            		break;
+        		}
+            }
         }     
     }
-        
+    
+   boolean checkFlow(ArrayList<Plane> planes, int p) {
+	   int planesWithSameRoute = 0;
+	   
+	   for (int i=0; i<planes.size(); i++) {
+		   if (planes.get(p).getDestination().equals(planes.get(i).getDestination())) {
+			   if (planes.get(p).getLocation().equals(planes.get(i).getLocation()))
+				   planesWithSameRoute++;
+		   }
+	   }
+	   
+	   if (planesWithSameRoute > 7) return true;
+	   else return false;
+   }
+   
    double goGreedy(ArrayList<Plane> planes, int planeNumber, int round) {    
 	   //Tests all possible routes in range -10 to +10 and chooses the one which gets the plane closest to
 	   //the destination and simulaneously valid
@@ -127,12 +149,11 @@ public class PlayerNew extends Player {
                         break;
                     } 
                     
-                    if(collisionCount > 50) {
+                    if(collisionCount > 25) {
                         Plane pa = planes.get(a);
                         Plane pb = planes.get(b);
                         
                         double bdist = Math.abs(calculateBearing(pa.getLocation(), pa.getDestination())-calculateBearing(pb.getLocation(), pb.getDestination()));
-                        //logger.info(bdist);
                         if((bdist>170 && bdist<190) ) {
                             dynamicPlanes.add(b);
                             happened = false;
@@ -203,7 +224,7 @@ public class PlayerNew extends Player {
 
     @Override
     public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
-        //This is the function that's actually called by the simulator to update the planes each turn
+        //This is the only function that's actually called by the simulator to update the planes each turn
     	
     	for(int i = 0; i < planes.size(); i++) {
             if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {}
