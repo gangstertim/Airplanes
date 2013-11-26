@@ -330,7 +330,7 @@ public class PlayerT extends Player {
 						dp = true;
 						break outerWhile;
 						}
-						
+					} 
 					}
 					*/
 				}
