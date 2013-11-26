@@ -228,7 +228,7 @@ public class PlayerT extends Player {
 		else
 			sig = 1;
 		int amn = (int)second.arc/2;
-		double ang = (amn+1)*sig*4;
+		double ang = (amn+1)*sig*5;
 		
 		outerWhile:
 			
@@ -239,8 +239,9 @@ public class PlayerT extends Player {
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
 				else {
 					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5.0) { 
-						if(second.arc<10 && collisionCount>6) {		
+						if(second.arc<20 && collisionCount>10) {		
 							if(formArc(b,planes,(ang/180.0)*Math.PI)) {
+								
 								return true;
 							}
 							else
@@ -323,7 +324,7 @@ public class PlayerT extends Player {
 		
 		//.info("radius"+radius);
 
-		bearn = bearn+(angle)*180.0/Math.PI;
+		bearn = bearn+(angle+change/2.0)*180.0/Math.PI;
 
 
    	  	if(bearn < 0) { bearn += 360; }
@@ -345,7 +346,7 @@ public class PlayerT extends Player {
 		
 		
 		double accbear = 0.0;
-		while (curr.size() >= time+1 && curr.getLocAt(time).distance(p.getDestination()) >8) {
+		while (curr.size() >= time+1 && curr.getLocAt(time).distance(p.getDestination()) >1) {
 			time++;
 			Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
 			//logger.info(currentLoc);
@@ -368,31 +369,7 @@ public class PlayerT extends Player {
 			// logger.info(change*180.0/Math.PI+" "+time+" "+newBearing);
 
 		}
-		while (curr.size() >= time+1 && curr.getLocAt(time++).distance(p.getDestination()) >1) {
-
-			Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
-
-			double newBearing = calculateBearing(currentLoc, p.getDestination());
-			//logger.info(time);
-			
-
-			
-			
-			if(Math.abs(newBearing-curr.getBearingAt(time-1))>10.0)
-			{
-				newBearing =  curr.getBearingAt(time-1)+Math.signum(newBearing-curr.getBearingAt(time-1))*9.99;
-				  if(newBearing < 0.0) { newBearing += 360; }
-			     if(newBearing > 360.0) { newBearing -= 360; }
-			     newBearing = newBearing % 360.0;
-				
-				
-			}
-			
-			
-			//if (time <= p.getDepartureTime()) curr.setLocAt(time, new PlaneDetails(currentLoc, -1));
-			curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
-		}
-
+		
 		allPlaneLocs[b]=curr;
 
 		return true;
