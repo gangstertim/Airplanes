@@ -288,16 +288,18 @@ public class PlayerNew extends Player {
     		Point2D.Double loc = planes.get(p).getLocation();
     		Point2D.Double dest = planes.get(p).getDestination();
     		double bear = planes.get(p).getBearing();
+    		boolean crosses = false;
     		if (loc.distance(dest) < .5) return -1;
     		else if (loc.distance(waypoints[p]) < .5) {
     			for (int i=0; i<planes.size(); i++) {
     				if (checkIfCrossesFlow(p, i)) {
 	    				waypoints[p] = calculateWaypoint(i, p);
-	    				bearing = //????
+	    				bearing = moveTowards(bear, calculateBearing(loc, waypoints[p]));
+	    				crosses=true;
     				}
+    				
+    				if (!crosses) waypoints[p]=dest;
     			}
-			} else { //make the destination the next waypoint.
-				waypoints[p] = //dest????
 			} else {
     			bearing = moveTowards(bear, calculateBearing(loc, dest));
     		}
