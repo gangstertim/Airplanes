@@ -44,6 +44,7 @@ public class PlayerNew extends Player {
     public void startNewGame(ArrayList<Plane> planes) {
         offsets = new int[planes.size()];       
         allPlaneLocs = new LocationList[planes.size()];
+        waypoints = new Point2D.Double[planes.size()];
         setInitialPaths(planes, allPlaneLocs);              
         FlightComparator comparator = new FlightComparator(allPlaneLocs);
         indexes = comparator.createIndexArray();
@@ -69,6 +70,7 @@ public class PlayerNew extends Player {
     }
     
    boolean checkFlow(ArrayList<Plane> planes, int p) {
+	   //checks to see if the a plane p is part of a flow
 	   int planesWithSameRoute = 0;
 	   
 	   for (int i=0; i<planes.size(); i++) {
@@ -87,7 +89,7 @@ public class PlayerNew extends Player {
 	   
 		 Plane p = planes.get(planeNumber);
 		 double initialBearing = p.getBearing();
-		 double minDistance = Double.MAX_VALUE;
+		 double minDistance = 999999; //Double.MAX_VALUE;
 		 double bestDirection = 0;
 		 double toReturn = initialBearing;
 	 
@@ -136,8 +138,8 @@ public class PlayerNew extends Player {
     	//if a flow crosses a flow path, that flow is rerouted arbitrarily
     	//TODO: this can be done more intelligently
     	if (flowPlanes.contains(a) || flowPlanes.contains(b)) {
-        	if (flowPlanes.contains(a) && flowPlanes.contains(b)) {
-        		int smaller, larger;
+    		int smaller, larger;
+    		if (flowPlanes.contains(a) && flowPlanes.contains(b)) {
         		if (a<b) {
         			smaller = a;
         			larger = b;
@@ -164,7 +166,7 @@ public class PlayerNew extends Player {
     	//the second point provided.
     	Point2D.Double loc = allPlaneLocs[nearestTo].getLocAt(0);
     	Point2D.Double start = allPlaneLocs[endPoint].getLocAt(0);
-    	Point2D.Double end = allPlaneLocs[endPoint].getLocAt(allPlaneLocs[endPoint].size());
+    	Point2D.Double end = allPlaneLocs[endPoint].getLocAt(allPlaneLocs[endPoint].size()-1);
     	Point2D.Double dest = (loc.distance(start) < loc.distance(end)) ? start : end;
     	
     	double slope = (end.getY()-start.getY())/(end.getX()-start.getX());
@@ -186,7 +188,7 @@ public class PlayerNew extends Player {
         //logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
         boolean collisions = false; 
         int collisionCount = 0;
-        boolean dp =false;
+        boolean dp = false;
         
         outerWhile:
         while (!collisions) { //as long as there are no collisions...
@@ -198,8 +200,9 @@ public class PlayerNew extends Player {
                     if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) < 6) {     
                     //ie, if a collision is detected...
                     	//Check to see if the planes cross a flow path.  If they don't, check for other collisions
-                    	if (checkIfCrossesFlow(a,b)) 
+                    	if (checkIfCrossesFlow(a,b)) {
                     		break outerWhile;
+                    	}
                     	collisionCount++;
                         happened = true;
                         collisions = false;
@@ -283,48 +286,31 @@ public class PlayerNew extends Player {
         return toReturn;
     }
 
-    	double goAroundTheFlow(ArrayList<Plane> planes, int p) {
-    		double bearing;
-    		Point2D.Double loc = planes.get(p).getLocation();
-    		Point2D.Double dest = planes.get(p).getDestination();
-    		double bear = planes.get(p).getBearing();
-    		boolean crosses = false;
-    		if (loc.distance(dest) < .5) return -1;
-    		else if (loc.distance(waypoints[p]) < .5) {
-    			for (int i=0; i<planes.size(); i++) {
-    				if (checkIfCrossesFlow(p, i)) {
-	    				waypoints[p] = calculateWaypoint(i, p);
-	    				bearing = moveTowards(bear, calculateBearing(loc, waypoints[p]));
-	    				crosses=true;
-    				}
-    				
-    				if (!crosses) waypoints[p]=dest;
-    			}
-			} else {
-    			bearing = moveTowards(bear, calculateBearing(loc, dest));
-    		}
-    		return 0;
-    	}
-    	
-    @Override
-    public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
-        //This is the only function that's actually called by the simulator to update the planes each turn
-    	
-    	for(int i = 0; i < planes.size(); i++) {
-            if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {}
-            else if(flowPlanes.contains(i)) {
-            	bearings[i] = goAroundTheFlow(planes, i);
-            } else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
-                double bear = goGreedy(planes, i, round);
-                if(bear!=-1) bearings[i]=bear;
-            } else if (round < offsets[i] ) { }  //plane hasn't taken off yet
-            else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
-            else bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]); 
-            //plane is flying
-        
-        }
-        return bearings;
-    }
+	double goAroundTheFlow(ArrayList<Plane> planes, int p) {
+		double bearing = -1;
+		Point2D.Double loc = planes.get(p).getLocation();
+		Point2D.Double dest = planes.get(p).getDestination();
+		double bear = planes.get(p).getBearing();
+		boolean crosses = false;
+		if (loc.distance(dest) < .5) return -1;
+		else if (loc.distance(waypoints[p]) < .5) {
+			for (int i=0; i<planes.size(); i++) {
+				if (checkIfCrossesFlow(p, i)) {
+    				waypoints[p] = calculateWaypoint(i, p);
+    				bearing = moveTowards(bear, calculateBearing(loc, waypoints[p]));
+    				crosses=true;
+				}
+				
+				if (!crosses){
+					waypoints[p]=dest;
+					bearing = moveTowards(bear, calculateBearing(loc, dest));
+				}
+			}
+		} else {
+			bearing = moveTowards(bear, calculateBearing(loc, dest));
+		}
+		return bearing;
+	}
     
     
     double moveTowards(double currentBearing, double targetBearing) {
@@ -348,5 +334,24 @@ public class PlayerNew extends Player {
         }
         return toReturn % 360;
     } 
-
+   
+    @Override
+    public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
+        //This is the only function that's actually called by the simulator to update the planes each turn
+    	
+    	for(int i = 0; i < planes.size(); i++) {
+            if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {}
+            else if(reroutedPlanes.contains(i) && round > 0 && bearings[i] !=-2) {
+            	bearings[i] = goAroundTheFlow(planes, i);
+            } else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
+                double bear = goGreedy(planes, i, round);
+                if(bear!=-1) bearings[i]=bear;
+            } else if (round < offsets[i] ) { }  //plane hasn't taken off yet
+            else if (round >= allPlaneLocs[i].size()+offsets[i]) {  } //plane has landed
+            else bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]); 
+            //plane is flying
+        
+        }
+        return bearings;
+    }
 }
