@@ -46,7 +46,8 @@ import airplane.sim.GameListener;
  */
 public final class GUI extends JFrame implements ActionListener, GameListener, ChangeListener
 {
-	private final static String VERSION = "1.0";
+	private final static String VERSION = "1.1";
+	private final static String TITLE = "CIS 700 Fall 2013 - Airplanes";
 	
 	private GameEngine engine;
 	private static final long serialVersionUID = 1L;
@@ -94,7 +95,7 @@ public final class GUI extends JFrame implements ActionListener, GameListener, C
 //		boardScroller.getViewport().add(boardPanel);
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setTitle("CIS 700 Summer 2013 - Airplane tournament");
+		setTitle(TITLE + " " + VERSION);
 		setName("GUI");
 		setPreferredSize(new Dimension(1000, 850));
 		setMinimumSize(new Dimension(500, 500));

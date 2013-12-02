@@ -16,6 +16,7 @@ public class Plane extends GameObject {
 
 	private double destinationX;
 	private double destinationY;
+	private final ArrayList<Integer> dependencies;
 	
 	public int id; // this is new
 	
@@ -28,12 +29,13 @@ public class Plane extends GameObject {
 		return allPoints;
 	}
 	
-	public Plane(double x, double y, double dx, double dy, int departureTime) {
+	public Plane(double x, double y, double dx, double dy, int departureTime, ArrayList<Integer> list) {
 		this.x = x;
 		this.y = y;
 		this.destinationX = dx;
 		this.destinationY = dy;
 		this.departureTime = departureTime;
+		this.dependencies = list;
 	}
 	
 	public Plane(Plane other) {
@@ -44,6 +46,7 @@ public class Plane extends GameObject {
 		this.departureTime = other.departureTime;
 		this.bearing = other.bearing;
 		this.id = other.id;
+		this.dependencies = other.dependencies;
 	}
 	
 	
@@ -65,6 +68,18 @@ public class Plane extends GameObject {
 		
 	public Point2D.Double getDestination() {
 		return new Point2D.Double(this.destinationX, this.destinationY);
+	}
+	
+	public ArrayList<Integer> getDependencies() {
+		if (dependencies == null) return null;
+		else return (ArrayList<Integer>)(dependencies.clone());
+	}
+	
+	public boolean dependenciesHaveLanded(double[] bearings) {
+		if (dependencies == null) return true;
+		for (int p : dependencies) 
+			if (bearings[p] != -2) return false;
+		return true;
 	}
 	
 	public boolean isOn(int time) {

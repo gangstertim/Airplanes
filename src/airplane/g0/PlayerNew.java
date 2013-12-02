@@ -89,7 +89,8 @@ public class PlayerNew extends Player {
 	   
 		 Plane p = planes.get(planeNumber);
 		 double initialBearing = p.getBearing();
-		 double minDistance = 999999; //Double.MAX_VALUE;
+
+		 double minDistance = Integer.MAX_VALUE;
 		 double bestDirection = 0;
 		 double toReturn = initialBearing;
 	 

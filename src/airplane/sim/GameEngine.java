@@ -156,11 +156,19 @@ public final class GameEngine
 			
 			// make sure no plane took off too early
 			for (int i = 0; i < planes.size(); i++) {
-				if (planes.get(i).getDepartureTime() > round && board.bearings[i] > -1) {
-					System.err.println("ERROR! plane took off too early!");
-					gui.setErrorMessage("Error! Plane took off too early!");
-					notifyListeners(GameUpdateType.ERROR);
-					return false;
+				if (board.bearings[i] > -1) {
+					if (planes.get(i).getDepartureTime() > round) {
+						System.err.println("ERROR! plane took off before its departure time!");
+						gui.setErrorMessage("Error! Plane took off before its departure time!");
+						notifyListeners(GameUpdateType.ERROR);
+						return false;
+					}
+					else if (planes.get(i).dependenciesHaveLanded(board.bearings) == false) {
+						System.err.println("ERROR! plane took off before its dependency landed!");
+						gui.setErrorMessage("Error! Plane took off before its dependency landed!");
+						notifyListeners(GameUpdateType.ERROR);
+						return false;
+					}
 				}
 			}
 			
@@ -229,6 +237,7 @@ public final class GameEngine
 						p.setBearing(-2);
 						board.bearings[i] = -2;
 						board.planesLanded++;
+						log.info("Plane #" + i + " landed at time " + round);
 					}
 				}
 			}
@@ -264,8 +273,6 @@ public final class GameEngine
 
 		return true;
 	}
-
-	
 
 	private final static void printUsage()
 	{
@@ -327,10 +334,12 @@ public final class GameEngine
 				
 				Point2D.Double origin = board.origins.get(i);
 				Point2D.Double destination = board.destinations.get(i);
+				ArrayList<Integer> dependencies = board.dependencies.get(i);
 				
 				int depart = board.departureTimes.get(i);
 				Plane p = new Plane(origin.getX(), origin.getY(), destination.getX(), 
-						destination.getY(), depart);
+						destination.getY(), depart, dependencies);
+				//log.info("Dependencies for plane " + i + " is " + dependencies);
 				
 				board.planes.add(p);
 			}

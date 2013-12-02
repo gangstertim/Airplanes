@@ -23,6 +23,7 @@ public final class Board {
 	public ArrayList<Integer> departureTimes;
 	public ArrayList<Point2D.Double> origins;
 	public ArrayList<Point2D.Double> destinations;
+	public ArrayList<ArrayList<Integer>> dependencies;
 	public int numPlanes;
 	public double[] bearings;
 
@@ -112,22 +113,55 @@ public final class Board {
 			origins = new ArrayList<Point2D.Double>();
 			destinations = new ArrayList<Point2D.Double>();
 			departureTimes = new ArrayList<Integer>();
+			dependencies = new ArrayList<ArrayList<Integer>>();
+			
+			int count = 0;
 			
 			while ( (myLine = bufRead.readLine()) != null)
 			{    
-				// Flight schedule--start, destination, departure--is delimited by semicolons: 
+				// Flight schedule--start, destination, departure--is delimited by semicolons:
 			    String[] flight = myLine.split(";");
 			    
-			    Point2D.Double origin = new Point2D.Double(Double.parseDouble(flight[0].split(",")[0]), 
-			    		Double.parseDouble(flight[0].split(",")[1]));
-			    Point2D.Double destination = new Point2D.Double(Double.parseDouble(flight[1].split(",")[0]), 
-			    		Double.parseDouble(flight[1].split(",")[1]));
-			    
-			    origins.add(origin);
-			    
-			    destinations.add(destination);
-			    
-			    departureTimes.add(Integer.parseInt(flight[2]));
+			    if (flight.length < 3) {
+			    	// oops, something wrong in the file
+			    	System.err.println("Warning: Could not parse line in flights file: " + myLine);
+			    }
+			    else {
+			    	
+				    if (addToList(flight[0].trim(), origins) == false) {
+				    	System.err.println("Warning: Could not parse line in flights file: " + myLine);
+				    	continue;
+				    }
+				    
+				    if (addToList(flight[1].trim(), destinations) == false) {
+				    	System.err.println("Warning: Could not parse line in flights file: " + myLine);
+				    	continue;
+				    }
+				    
+				    departureTimes.add(Integer.parseInt(flight[2].trim()));
+				    
+					// the dependency is optional and is comma-separated
+				    if (flight.length > 3) {
+				    	String[] dependencyConfig = flight[3].trim().split(",");
+				    	if (dependencyConfig != null && dependencyConfig.length > 0) {
+				    		ArrayList<Integer> dependencyList = new ArrayList<Integer>();
+				    		for (String dependency : dependencyConfig) {
+				    			if (dependency.trim().length() > 0) {
+				    				int d = Integer.parseInt(dependency);
+				    				if (d == count) {
+				    					System.err.println("Warning: Plane " + count + " has a dependency on itself!");
+				    				}
+				    				else dependencyList.add(d);
+				    			}
+				    		}
+				    		dependencies.add(dependencyList);
+				    	}
+				    	else dependencies.add(null);
+				    }
+			    	else dependencies.add(null);
+
+			    }
+			    count++;
 			    
 			}
 			bearings = new double[origins.size()];
@@ -143,6 +177,22 @@ public final class Board {
 
 		// sanityCheck();
 
+	}
+	
+	private boolean addToList(String token, ArrayList<Point2D.Double> list) {
+    	String[] parts = token.split(",");
+    	if (parts.length < 2) {
+	    	// oops, something wrong in the file
+    		return false;
+    	}
+    	String x = parts[0]; 
+    	String y = parts[1]; 
+	    
+	    Point2D.Double point = new Point2D.Double(Double.parseDouble(x), Double.parseDouble(y));
+
+		list.add(point);
+		
+		return true;
 	}
 
 
