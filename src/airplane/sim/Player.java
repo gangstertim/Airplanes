@@ -47,7 +47,7 @@ public abstract class Player {
 	 */
 	protected double[] simulateUpdate(ArrayList<Plane> planes, int round, double[] bearings) {
 		// not implemented
-		return bearings;
+		return null;
 	}
 	
 	/*
@@ -75,7 +75,6 @@ public abstract class Player {
      */
     protected SimulationResult startSimulation(ArrayList<Plane> planes, int round) {
     	continueSimulation = true;
-    	int x = 0;
     	// make a copy of all the Planes (so the originals don't get affected)
     	ArrayList<Plane> simPlanes = new ArrayList<Plane>();
     	for (Plane p : planes) {
@@ -93,18 +92,18 @@ public abstract class Player {
     	}
     	
     	// now loop through the simulation
-    	while(landed != simBearings.length && continueSimulation && x < 15) {
+    	while(landed != simBearings.length && continueSimulation) {
     		// update the round number
     		round++;
-    		x++;
     		// the player simulates the update of the planes
     		simBearings = simulateUpdate(simPlanes, round, simBearings);
     		// if it's null, then don't bother
     		if (simBearings == null) return new SimulationResult(SimulationResult.NULL_BEARINGS, round, simPlanes);
     		// make sure no planes took off too early
 			for (int i = 0; i < simPlanes.size(); i++) {
-				if (simPlanes.get(i).getDepartureTime() > round && simBearings[i] > -1) {
-					return new SimulationResult(SimulationResult.TOO_EARLY, round, simPlanes);
+				if (simBearings[i] > -1) {
+					if (simPlanes.get(i).getDepartureTime() > round || simPlanes.get(i).dependenciesHaveLanded(simBearings) == false)
+						return new SimulationResult(SimulationResult.TOO_EARLY, round, simPlanes);
 				}
 			}
     		// update the locations
