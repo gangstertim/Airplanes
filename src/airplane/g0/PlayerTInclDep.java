@@ -1,5 +1,15 @@
 package airplane.g0;
 
+
+/* Last Edit--Adjusting for dependencies (12/2/2013, Tim)
+ * 
+ * Changes to implement:
+ * -If a plane does not depend on any other planes, no change
+ * -Else
+ * 	-If the plane it depends on is deterministically routed, ensure that the offset
+ *   of the second plane is greater than the landing time of the first plane
+ *  -If the plane it depends on is nondeterministally routed, do something
+ */
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.awt.*;
@@ -13,13 +23,12 @@ import airplane.sim.Plane;
 import airplane.sim.Player;
 import airplane.sim.SimulationResult;
 
-public class PlayerT extends Player {
+public class PlayerTInclDep extends Player {
 	
 	//array of PlaneLocations; each PlaneLocation has the location of a single plane at every point in time
 	public LocationList[] allPlaneLocs;  
 	public int[] offsets;  //this array stores the departure time necessary for each plane
 	private Logger logger = Logger.getLogger(this.getClass()); // for logging
-	private ArrayList<Integer> dynamicPlanes = new ArrayList<Integer> ();
 	Integer[] indexes;
 	public boolean fst = true; 
 	
@@ -53,54 +62,6 @@ public class PlayerT extends Player {
 		}
 		
 	}
-	
-	 double goGreedy(ArrayList<Plane> planes, int planeNumber, int round) {
-	        
-         Plane p = planes.get(planeNumber);
-         double initialBearing = p.getBearing();
-         double minDistance = Double.MAX_VALUE;
-         double bestDirection = 0;
-         double toReturn = initialBearing;        
- 
-         if((initialBearing == -1 && round > offsets[planeNumber])) {
-        	 return calculateBearing(p.getLocation(), p.getDestination());
-         } else if(initialBearing == -1 && round < offsets[planeNumber]) {
-        	 return -1;
-         }
-         
-         SimulationResult sr = startSimulation(planes, round);
-         boolean initialValid = sr.isSuccess();
-         
-         for(double i = -9; i <= 9; i=i+0.5) {
-        	 double bearn = initialBearing + i;
-        	 
-        	 //if(bearn < 0) bearn += 360;
-        	 //else if(bearn > 360) bearn -= 360;
-             bearn = bearn % 360;
-             p.setBearing(bearn);   
-             SimulationResult srNew = startSimulation(planes, round);
-             boolean valid = srNew.isSuccess();    
-             double distance = getLocation(p.getLocation(), 1, bearn).distance(p.getDestination());
-             logger.info(valid);
-             
-             if(distance < minDistance && valid) {
-                     bestDirection = i;
-                     minDistance = distance;
-             }
-         }
-
-         if(!initialValid && bestDirection == 0) {
-                 bestDirection = -10;
-         }
-         
-         toReturn += bestDirection;
-         p.setBearing(initialBearing);
-         
-         if(toReturn < 0) { toReturn += 360; }
-         if(toReturn > 360) { toReturn -= 360; }
-         logger.info("toReturn + " + toReturn);
-         return toReturn % 360;
-	 }
 	 
 	double moveTowards(double currentBearing, double targetBearing) {
 		currentBearing = currentBearing + 360;
@@ -167,63 +128,35 @@ public class PlayerT extends Player {
 		int offsetB = offsets[b];
 		//logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
 		boolean collisions = false;
-		boolean arccollision=false;
 		int collisionCount = 0;
 		boolean dp =false;
-		int sig = second.arc%2;
-		if(sig==0)
-			sig = -1;
-		else
-			sig = 1;
+		int sig = (second.arc%2==0)? -1 : 1;
 		int amn = (int)second.arc/2;
 		double ang = (amn+1)*sig*5;
 		
-		outerWhile:	
 		while (!collisions) { //as long as there are no collisions...
 			int flag = 1;		
-			//logger.info("currently in collisions loop");
 			for (int i=0; i<first.size() && i-offsetB+offsetA<second.size(); i++) {
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
-				else {
-					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5.0) { 
-						if(second.arc<20 && collisionCount>10) {		
-							if(formArc(b,planes,(ang/180.0)*Math.PI)) {	
-								return true;
-							} else {
-								second = allPlaneLocs[b];
-								happened=true;
-								collisions = false;
-								flag=0;
-								break;
-							}
+				else if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5.0) { 
+					if(second.arc<20 && collisionCount>10) {		
+						if(formArc(b,planes,(ang/180.0)*Math.PI)) {	
+							return true;
 						} else {
-							collisionCount ++;
+							second = allPlaneLocs[b];
 							happened=true;
 							collisions = false;
 							flag=0;
-							offsetB+=1;
-							break;	
-						}	
-					} 
-					/*
-					if(collisionCount > 50) {
-						Plane pa = planes.get(a);
-						Plane pb = planes.get(b);
-						
-						double bdist = Math.abs(calculateBearing(pa.getLocation(), pa.getDestination())-calculateBearing(pb.getLocation(), pb.getDestination()));
-						//logger.info(bdist);
-						if((bdist>170 && bdist<190) )
-						{
-						
-						dynamicPlanes.add(b);
-						
-						happened = false;
-						dp = true;
-						break outerWhile;
+							break;
 						}
-					} 
-					}
-					*/
+					} else {
+						collisionCount ++;
+						happened=true;
+						collisions = false;
+						flag=0;
+						offsetB+=1;
+						break;	
+					}	 
 				}
 			}
 			if(flag==1) break;		
@@ -249,7 +182,7 @@ public class PlayerT extends Player {
         double arcdist = (2*radius*Math.PI*(2*Math.abs(angle)/(2*Math.PI)));
         double change =-(2*(angle))/((arcdist));
         logger.info(change);
-        double thres = change*180.0/Math.PI;
+
         if(Math.abs(change*180.0/(Math.PI))>10.0) return false;
 		double bearn = calculateBearing(p.getLocation(), p.getDestination());		
 		
@@ -261,14 +194,12 @@ public class PlayerT extends Player {
    	  	bearn = bearn % 360;
 
 		curr.insertLoc(new PlaneDetails(new Point2D.Double(p.getX(), p.getY()), bearn));
-		
-		double accbear = 0.0;
+
 		while (curr.size() >= time+1 && curr.getLocAt(time).distance(p.getDestination()) >1) {
 			time++;
 			Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
 			//logger.info(currentLoc);
 			double newBearing = curr.getBearingAt(time-1)+((change)*180.0/Math.PI);
-			accbear += change*180.0/Math.PI;
 		   	  if(newBearing < 0.0) { newBearing += 360; }
 		     if(newBearing > 360.0) { newBearing -= 360; }
 		     newBearing = newBearing % 360.0;
@@ -306,13 +237,11 @@ public class PlayerT extends Player {
 			);
 	
 			//Set all subsequent locations and bearings until the plane has successfully
-			//found a path to its destination			
+			//found a path to its destination	
 			while (curr.size() >= time+1 && curr.getLocAt(time++).distance(p.getDestination()) > 1) {
-
 				Point2D.Double currentLoc = getLocation(curr.getLocAt(time-1), 1, curr.getBearingAt(time-1));
-
 				double newBearing = calculateBearing(currentLoc, p.getDestination());
-				//logger.info(time);
+			
 				if (curr.getBearingAt(time-1)==-2) {
 					newBearing=-2; //how the hell are we getting illegal moves from -2 to other bearings???
 				} else if (Math.abs(newBearing-curr.getBearingAt(time-1))>10) {
@@ -341,14 +270,8 @@ public class PlayerT extends Player {
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
 		logger.info(round + " "+ planes.get(1).getLocation());
 		for(int i = 0; i < planes.size(); i++) {
-			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {
-			} else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
-                double bear = goGreedy(planes, i, round);
-                if(bear!=-1)
-                	bearings[i]=bear;
-			}
-			else if( bearings[i] == -2) {}
-			else if (round < offsets[i]+1 ) {}  //plane hasn't taken off yet
+			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {} 
+			else if( bearings[i] == -2 || round < offsets[i]+1 ) {} //Plane has landed or hasn't yet taken off
 			else if (round >= allPlaneLocs[i].size()+offsets[i]+1) {} //plane has landed
 			else { 
 				bearings[i] = allPlaneLocs[i].getBearingAt(round-offsets[i]-1); 
