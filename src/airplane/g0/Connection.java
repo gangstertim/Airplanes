@@ -65,9 +65,9 @@ public class Connection extends Player {
 					maxdep =allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)];
 					
 			}
-			if(offsets[i]<(maxdep+1))
+			if(offsets[i]<(maxdep))
 			{
-				offsets[i] = maxdep + 1;
+				offsets[i] = maxdep ;
 				for (int k=0; k<planes.size(); k++) {
 					if(k!=i && checkCollisions(k, i, planes)) {
 						k=-1; 
