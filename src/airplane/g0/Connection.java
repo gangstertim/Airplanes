@@ -22,7 +22,7 @@ public class Connection extends Player {
 	private ArrayList<Integer> dynamicPlanes = new ArrayList<Integer> ();
 	Integer[] indexes;
 	public boolean fst = true; 
-	
+	public boolean depflag = false;
 	@Override
 	public String getName() {return "Connection";}
 	
@@ -33,26 +33,66 @@ public class Connection extends Player {
 		setInitialPaths(planes, allPlaneLocs);
 		FlightComparator comparator = new FlightComparator(allPlaneLocs);
 		indexes = comparator.createIndexArray();
-		
 		Arrays.sort(indexes, comparator);
 		
+		
 		for(int i=0; i<planes.size(); i++) {
-			//logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].distance);
+			logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].flighttime);
 		}
 		
 		for(int i=0; i<planes.size(); i++) {
 			offsets[i] = planes.get(i).getDepartureTime();
 		}	
 		
+		
+
+		
+	for (int i=0; i<planes.size(); i++) {
+			
+			ArrayList<Integer> dep = planes.get(i).getDependencies();
+			int maxdep = 0;
+			if(dep!=null)
+			{
+				depflag = true;
+				
+			for(int j= 0; j<dep.size(); j++)
+			{
+				if((allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)])>maxdep)
+					maxdep =allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)];
+					
+			}
+			if(offsets[i]<(maxdep))
+			{
+				offsets[i] = maxdep ;
+				for (int k=0; k<planes.size(); k++) {
+					if(k!=i && checkCollisions(k,i, planes)) {
+						
+						k=-1; 
+					}
+				}
+				i = -1;
+			}
+			}
+			
+				
+		}
+	
+
+	
+
+		
 		for (int i=0; i<planes.size(); i++) {
-			for (int j=i+1; j<planes.size(); j++) {
+			for (int j=planes.size()-1; j>i; j--) {
 				if(checkCollisions(indexes[i], indexes[j], planes)) {
+					
+						Arrays.sort(indexes, comparator);
 					i=-1; break;
 				}
 			}
 		}
 		
-		for (int i=0; i<planes.size(); i++) {
+	
+	for (int i=0; i<planes.size(); i++) {
 			
 			ArrayList<Integer> dep = planes.get(i).getDependencies();
 			int maxdep = 0;
@@ -70,6 +110,7 @@ public class Connection extends Player {
 				offsets[i] = maxdep ;
 				for (int k=0; k<planes.size(); k++) {
 					if(k!=i && checkCollisions(k, i, planes)) {
+						
 						k=-1; 
 					}
 				}
@@ -79,7 +120,6 @@ public class Connection extends Player {
 			
 				
 		}
-		
 		
 		
 		
@@ -113,7 +153,7 @@ public class Connection extends Player {
              SimulationResult srNew = startSimulation(planes, round);
              boolean valid = srNew.isSuccess();    
              double distance = getLocation(p.getLocation(), 1, bearn).distance(p.getDestination());
-             logger.info(valid);
+             //logger.info(valid);
              
              if(distance < minDistance && valid) {
                      bestDirection = i;
@@ -130,7 +170,7 @@ public class Connection extends Player {
          
          if(toReturn < 0) { toReturn += 360; }
          if(toReturn > 360) { toReturn -= 360; }
-         logger.info("toReturn + " + toReturn);
+         //logger.info("toReturn + " + toReturn);
          return toReturn % 360;
 	 }
 	 
@@ -208,7 +248,7 @@ public class Connection extends Player {
 		else
 			sig = 1;
 		int amn = (int)second.arc/2;
-		double ang = (amn+1)*sig*4;
+		double ang = (amn+1)*sig*1;
 		
 		outerWhile:	
 		while (!collisions) { //as long as there are no collisions...
@@ -218,11 +258,13 @@ public class Connection extends Player {
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
 				else {
 					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5.0) { 
-						if(second.arc<18 && collisionCount>15) {		
+						if(second.arc<180 && collisionCount>second.arc/5.0) {		
 							if(formArc(b,planes,(ang/180.0)*Math.PI)) {	
 								return true;
 							} else {
+								collisionCount ++;
 								second = allPlaneLocs[b];
+								offsetB = 0;
 								happened=true;
 								collisions = false;
 								flag=0;
@@ -233,6 +275,7 @@ public class Connection extends Player {
 							happened=true;
 							collisions = false;
 							flag=0;
+							
 							offsetB+=1;
 							break;	
 						}	
@@ -261,7 +304,11 @@ public class Connection extends Player {
 			if(flag==1) break;		
 		}
 		
-		if(!dp) offsets[b]=offsetB;	
+		if(!dp) 
+		{
+			
+			offsets[b]=offsetB;	
+		}
 		return happened;
 	}
 	
@@ -280,7 +327,7 @@ public class Connection extends Player {
         double radius = Math.abs((dist/Math.sin(2*angle))*Math.cos(angle));
         double arcdist = (2*radius*Math.PI*(2*Math.abs(angle)/(2*Math.PI)));
         double change =-(2*(angle))/((arcdist));
-        logger.info(change);
+        //logger.info(change);
         double thres = change*180.0/Math.PI;
         if(Math.abs(change*180.0/(Math.PI))>10.0) return false;
 		double bearn = calculateBearing(p.getLocation(), p.getDestination());		
@@ -314,6 +361,9 @@ public class Connection extends Player {
 			curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));			
 			// logger.info(change*180.0/Math.PI+" "+time+" "+newBearing);
 		}
+		if(depflag)
+			curr.flighttime =  time;
+			else
 		curr.flighttime = time;
 		allPlaneLocs[b]=curr;
 		return true;
@@ -323,7 +373,7 @@ public class Connection extends Player {
 		//looks for straight-line path to each destination; assumes simultaneous start times
 		for(int i = 0; i < planes.size(); i++) {
 			allPlaneLocs[i] = new LocationList();
-			double distance = planes.get(i).getLocation().distance(planes.get(i).getDestination());
+			double distance = allPlaneLocs[i].flighttime;
 					
 			allPlaneLocs[i].distance = distance;  
 			LocationList curr = allPlaneLocs[i];
@@ -357,7 +407,10 @@ public class Connection extends Player {
 				//if (time <= p.getDepartureTime()) curr.setLocAt(time, new PlaneDetails(currentLoc, -1));
 				else curr.setLocAt(time, new PlaneDetails(currentLoc,newBearing));
 			}
-			curr.flighttime = time;
+			if(depflag)
+				curr.flighttime =  time;
+				else
+					curr.flighttime = time;
 		}
 		
 	}
@@ -374,7 +427,7 @@ public class Connection extends Player {
 
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
-		logger.info(round + " "+ planes.get(1).getLocation());
+		//logger.info(round + " "+ planes.get(1).getLocation());
 		for(int i = 0; i < planes.size(); i++) {
 			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {
 			} else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
