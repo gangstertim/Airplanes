@@ -26,6 +26,7 @@ public class Connection extends Player {
 	@Override
 	public String getName() {return "Connection";}
 	
+
 	@Override
 	public void startNewGame(ArrayList<Plane> planes) {
 		offsets = new int[planes.size()];			
@@ -38,10 +39,15 @@ public class Connection extends Player {
 		
 		for(int i=0; i<planes.size(); i++) {
 			//logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].distance);
+			allPlaneLocs[i].totalFlightTime = 
+					planes.get(i).getDepartureTime() +
+					(int)planes.get(i).getLocation().distance(planes.get(i).getDestination()) +
+					getMaxDependency(planes, i);
 		}
 		
 		for(int i=0; i<planes.size(); i++) {
 			offsets[i] = planes.get(i).getDepartureTime();
+			logger.info("plane: " + i + " total time: " + allPlaneLocs[i].totalFlightTime);
 		}	
 		
 		for (int i=0; i<planes.size(); i++) {
@@ -78,12 +84,22 @@ public class Connection extends Player {
 			}
 			
 				
+		}	
+	}
+	
+	public int getMaxDependency(ArrayList<Plane> planes, int p) {
+		int maxD = 0;
+		ArrayList<Integer> deps = planes.get(p).getDependencies();
+		logger.info(deps);
+		if (deps != null ) {
+			for (Integer i:deps) {
+				int D = planes.get(i).getDepartureTime() + 
+						(int)planes.get(i).getLocation().distance(planes.get(i).getDestination()) +
+						getMaxDependency(planes, i);
+				if (D > maxD) maxD = D;
+			}
 		}
-		
-		
-		
-		
-		
+		return maxD;
 	}
 	
 	 double goGreedy(ArrayList<Plane> planes, int planeNumber, int round) {

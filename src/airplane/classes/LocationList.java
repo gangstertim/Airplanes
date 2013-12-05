@@ -14,6 +14,7 @@ public class LocationList {
 	//Contains all of the plane details at each turn of the game
 	public ArrayList<PlaneDetails> locs;
 	public double distance;
+	public int totalFlightTime;
 	public LocationList() {locs = new ArrayList<PlaneDetails>(); arc=0; flighttime=0;}
 	public void insertLoc(PlaneDetails d)			{locs.add(d);}
 	public void setLocAt(int t, PlaneDetails d) 	{locs.add(t, d);}
