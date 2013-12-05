@@ -197,38 +197,9 @@ public class Connection extends Player {
 		return toReturn % 360;
 	}
 	
-	public boolean arcCollide(int b, ArrayList<Plane> planes){
-		for (int j=0; j<planes.size(); j++) {
-			if(j!=b) return checkCollisionsNoAction(b, j, planes);
-		}
-		return false;
-	}
 	
-	boolean checkCollisionsNoAction(int a, int b, ArrayList<Plane> planes) {
-		LocationList first = allPlaneLocs[a];
-		LocationList second = allPlaneLocs[b];
-		int offsetA = offsets[a];  //amount to shift b's path, should the original path result in a collision
-		int offsetB = offsets[b];
-		//logger.info("checking " + a + " (" + offsets[a] + ") and " + b + " (" + offsets[b] + ").");
-		boolean collisions = false;
-		int sig = second.arc%2;
-		
-		if(sig==0) {
-			sig = -1;
-		} else {
-			sig = 1;
-		}
-						
-		while (!collisions) { //as long as there are no collisions...
-			for (int i=0; i<first.size() && i-offsetB+offsetA<second.size(); i++) {						
-				if (i<offsetB-offsetA) continue;   //if i<offset, plane hasn't taken off yet; there can be no collisions 
-				else if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) < 6) { 					
-					return true;
-				}
-			}	
-		}					
-		return false;
-	}
+	
+
 	
 	//Check collisions checks and repairs collisions between planes a and b; 
 	boolean checkCollisions(int a, int b, ArrayList<Plane> planes) {
@@ -248,7 +219,11 @@ public class Connection extends Player {
 		else
 			sig = 1;
 		int amn = (int)second.arc/2;
-		double ang = (amn+1)*sig*1;
+		
+		double ang = (amn+1)*sig*5;
+		
+		if(depflag)
+			ang = (amn+1)*sig*1;
 		
 		outerWhile:	
 		while (!collisions) { //as long as there are no collisions...
@@ -258,11 +233,15 @@ public class Connection extends Player {
 				if (i<offsetB-offsetA) {continue;}   //if i<offset, plane hasn't taken off yet; there can be no collisions 
 				else {
 					if (first.getLocAt(i).distance(second.getLocAt(i-offsetB+offsetA)) <= 5.0) { 
-						if(second.arc<180 && collisionCount>second.arc/5.0) {		
+						
+						
+						if(second.arc<18 && (collisionCount>second.arc)) {	
+							
 							if(formArc(b,planes,(ang/180.0)*Math.PI)) {	
 								return true;
 							} else {
-								collisionCount ++;
+								
+								
 								second = allPlaneLocs[b];
 								offsetB = 0;
 								happened=true;
@@ -276,6 +255,7 @@ public class Connection extends Player {
 							collisions = false;
 							flag=0;
 							
+							second = allPlaneLocs[b];
 							offsetB+=1;
 							break;	
 						}	
@@ -414,6 +394,7 @@ public class Connection extends Player {
 		}
 		
 	}
+	
 		
 	public Point2D.Double getLocation(Point2D.Double currLocation, int steps, double bearing) {		
 		double radialBearing = bearing % 360;	
