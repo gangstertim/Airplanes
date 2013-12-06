@@ -40,10 +40,12 @@ public class Connection extends Player {
 		
 		for(int i=0; i<planes.size(); i++) {
 			//logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].distance);
+			int startTime = planes.get(i).getDepartureTime() > getMaxDependency(planes, i) ? 
+					planes.get(i).getDepartureTime() : getMaxDependency(planes, i);
+					
 			allPlaneLocs[i].totalFlightTime = 
-					planes.get(i).getDepartureTime() +
-					(int)planes.get(i).getLocation().distance(planes.get(i).getDestination()) +
-					getMaxDependency(planes, i);
+					startTime +
+					(int)planes.get(i).getLocation().distance(planes.get(i).getDestination());
 		}
 		
 		for(int i=0; i<planes.size(); i++) {
@@ -68,8 +70,9 @@ public class Connection extends Player {
 				
 			for(int j= 0; j<dep.size(); j++)
 			{
-				if((allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)])>maxdep)
+				if((allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)])>maxdep) {
 					maxdep =allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)];
+				}
 					
 			}
 			if(offsets[i]<(maxdep))
@@ -82,25 +85,25 @@ public class Connection extends Player {
 				}
 				i = -1;
 			}
-			}
-			
-				
+			}			
 		}	
 	}
 	
 	public int getMaxDependency(ArrayList<Plane> planes, int p) {
-		int maxD = 0;
+		int cumulativeDepartureTime = 0;
 		ArrayList<Integer> deps = planes.get(p).getDependencies();
 		logger.info(deps);
 		if (deps != null ) {
+			int maxD = 0;  //refers to the longest departure time in the current level of the stack
 			for (Integer i:deps) {
-				int D = planes.get(i).getDepartureTime() + 
-						(int)planes.get(i).getLocation().distance(planes.get(i).getDestination()) +
-						getMaxDependency(planes, i);
+				int D = (planes.get(i).getDepartureTime() > getMaxDependency(planes, i)) ?
+						planes.get(i).getDepartureTime() : getMaxDependency(planes, i);
+				D += (int)planes.get(i).getLocation().distance(planes.get(i).getDestination());
 				if (D > maxD) maxD = D;
-			}
-		}
-		return maxD;
+			} 
+			cumulativeDepartureTime+=maxD;
+		} else cumulativeDepartureTime = planes.get(p).getDepartureTime();
+		return cumulativeDepartureTime;
 	}
 	
 	 double goGreedy(ArrayList<Plane> planes, int planeNumber, int round) {
