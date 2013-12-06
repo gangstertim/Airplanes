@@ -36,17 +36,16 @@ public class Connection extends Player {
 		FlightComparator comparator = new FlightComparator(allPlaneLocs);
 		indexes = comparator.createIndexArray();
 		
-		Arrays.sort(indexes, comparator);
-		
 		for(int i=0; i<planes.size(); i++) {
 			//logger.info(indexes[i]+" "+allPlaneLocs[indexes[i]].distance);
-			int startTime = planes.get(i).getDepartureTime() > getMaxDependency(planes, i) ? 
-					planes.get(i).getDepartureTime() : getMaxDependency(planes, i);
+			int startTime = Math.max(planes.get(i).getDepartureTime(),getMaxDependency(planes, i));
 					
 			allPlaneLocs[i].totalFlightTime = 
 					startTime +
 					(int)planes.get(i).getLocation().distance(planes.get(i).getDestination());
 		}
+		
+		Arrays.sort(indexes, comparator);
 		
 		for(int i=0; i<planes.size(); i++) {
 			offsets[i] = planes.get(i).getDepartureTime();
@@ -93,11 +92,10 @@ public class Connection extends Player {
 		int cumulativeDepartureTime = 0;
 		ArrayList<Integer> deps = planes.get(p).getDependencies();
 		logger.info(deps);
+		int maxD = 0;  //refers to the longest departure time in the current level of the stack
 		if (deps != null ) {
-			int maxD = 0;  //refers to the longest departure time in the current level of the stack
 			for (Integer i:deps) {
-				int D = (planes.get(i).getDepartureTime() > getMaxDependency(planes, i)) ?
-						planes.get(i).getDepartureTime() : getMaxDependency(planes, i);
+				int D = Math.max(planes.get(i).getDepartureTime(), getMaxDependency(planes, i));
 				D += (int)planes.get(i).getLocation().distance(planes.get(i).getDestination());
 				if (D > maxD) maxD = D;
 			} 

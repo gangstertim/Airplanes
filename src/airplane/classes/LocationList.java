@@ -22,7 +22,7 @@ public class LocationList {
 	public Point2D.Double getLocAt(int t) 			{return locs.get(t).getLoc();}
 	public double getBearingAt(int t)				{return locs.get(t).getBearing();}
 	public int compareTo(LocationList locationList) {
-		return (int)-(this.distance-locationList.distance);
+		return (int)-(this.flighttime-locationList.flighttime);
 	}
 	
 } 
