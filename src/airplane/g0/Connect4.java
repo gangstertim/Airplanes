@@ -24,7 +24,7 @@ public class Connect4 extends Player {
 	public boolean fst = true; 
 	public boolean depflag = false;
 	@Override
-	public String getName() {return "Connection";}
+	public String getName() {return "Connect4";}
 	
 	@Override
 	public void startNewGame(ArrayList<Plane> planes) {
