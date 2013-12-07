@@ -46,6 +46,9 @@ public class Connection extends Player {
 		}
 		
 		Arrays.sort(indexes, comparator);
+		for(int i = 0; i<indexes.length; i++) {
+			logger.info("index " + indexes[i] + " is at the " + i + " th position");
+		}
 		
 		for (int i:indexes) {
 			logger.info("index: " + indexes[i]);
