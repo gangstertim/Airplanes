@@ -47,6 +47,10 @@ public class Connection extends Player {
 		
 		Arrays.sort(indexes, comparator);
 		
+		for (int i:indexes) {
+			logger.info("index: " + indexes[i]);
+		}
+		
 		for(int i=0; i<planes.size(); i++) {
 			offsets[i] = planes.get(i).getDepartureTime();
 			logger.info("plane: " + i + " total time: " + allPlaneLocs[i].totalFlightTime);
@@ -71,8 +75,7 @@ public class Connection extends Player {
 			{
 				if((allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)])>maxdep) {
 					maxdep =allPlaneLocs[dep.get(j)].flighttime+offsets[dep.get(j)];
-				}
-					
+				}		
 			}
 			if(offsets[i]<(maxdep))
 			{
@@ -376,7 +379,7 @@ public class Connection extends Player {
 
 	@Override
 	public double[] updatePlanes(ArrayList<Plane> planes, int round, double[] bearings) {
-		logger.info(round + " "+ planes.get(1).getLocation());
+		//logger.info(round + " "+ planes.get(1).getLocation());
 		for(int i = 0; i < planes.size(); i++) {
 			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {
 			} else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
