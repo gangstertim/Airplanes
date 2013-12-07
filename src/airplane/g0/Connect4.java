@@ -126,78 +126,7 @@ public class Connect4 extends Player {
 		
 	}
 	
-	 double goGreedy(ArrayList<Plane> planes, int planeNumber, int round) {
-	        
-         Plane p = planes.get(planeNumber);
-         double initialBearing = p.getBearing();
-         double minDistance = Double.MAX_VALUE;
-         double bestDirection = 0;
-         double toReturn = initialBearing;        
- 
-         if((initialBearing == -1 && round > offsets[planeNumber])) {
-        	 return calculateBearing(p.getLocation(), p.getDestination());
-         } else if(initialBearing == -1 && round < offsets[planeNumber]) {
-        	 return -1;
-         }
-         
-         SimulationResult sr = startSimulation(planes, round);
-         boolean initialValid = sr.isSuccess();
-         
-         for(double i = -9; i <= 9; i=i+0.5) {
-        	 double bearn = initialBearing + i;
-        	 
-        	 //if(bearn < 0) bearn += 360;
-        	 //else if(bearn > 360) bearn -= 360;
-             bearn = bearn % 360;
-             p.setBearing(bearn);   
-             SimulationResult srNew = startSimulation(planes, round);
-             boolean valid = srNew.isSuccess();    
-             double distance = getLocation(p.getLocation(), 1, bearn).distance(p.getDestination());
-             //logger.info(valid);
-             
-             if(distance < minDistance && valid) {
-                     bestDirection = i;
-                     minDistance = distance;
-             }
-         }
-
-         if(!initialValid && bestDirection == 0) {
-                 bestDirection = -10;
-         }
-         
-         toReturn += bestDirection;
-         p.setBearing(initialBearing);
-         
-         if(toReturn < 0) { toReturn += 360; }
-         if(toReturn > 360) { toReturn -= 360; }
-         //logger.info("toReturn + " + toReturn);
-         return toReturn % 360;
-	 }
 	 
-	double moveTowards(double currentBearing, double targetBearing) {
-		currentBearing = currentBearing + 360;
-		double toReturn = currentBearing;
-		
-		if(Math.abs(currentBearing-targetBearing + 360) < Math.abs(currentBearing - targetBearing)) {
-			if(Math.abs(currentBearing - targetBearing + 360) < 10) {
-				toReturn = targetBearing;
-			} else if(targetBearing > currentBearing) {
-				toReturn = currentBearing - 10;
-			} else if(targetBearing < currentBearing) {
-				toReturn = currentBearing + 10;
-			}
-		}
-		else if(Math.abs(currentBearing - targetBearing) < 10) {
-			toReturn = targetBearing;
-		} else if(targetBearing > currentBearing) {
-			toReturn = currentBearing + 10;
-		} else if(targetBearing < currentBearing) {
-			toReturn = currentBearing - 10;
-		}
-		return toReturn % 360;
-	}
-	
-	
 	
 
 	
@@ -221,9 +150,7 @@ public class Connect4 extends Player {
 		int amn = (int)second.arc/2;
 		
 		double ang = (amn+1)*sig*5;
-		
-		if(depflag)
-			ang = (amn+1)*sig*1;
+
 		
 		outerWhile:	
 		while (!collisions) { //as long as there are no collisions...
@@ -411,11 +338,7 @@ public class Connect4 extends Player {
 		//logger.info(round + " "+ planes.get(1).getLocation());
 		for(int i = 0; i < planes.size(); i++) {
 			if (planes.get(i).getLocation().distance(planes.get(i).getDestination())<=2) {
-			} else if(dynamicPlanes.contains(i) && round > 0 && bearings[i]!=-2) {
-                double bear = goGreedy(planes, i, round);
-                if(bear!=-1)
-                	bearings[i]=bear;
-			}
+			} 
 			else if( bearings[i] == -2) {}
 			else if (round < offsets[i]+1 ) {}  //plane hasn't taken off yet
 			else if (round >= allPlaneLocs[i].size()+offsets[i]+1) {} //plane has landed
